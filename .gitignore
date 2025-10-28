@@ -1,0 +1,20 @@
+# --- carpetas generadas, no las quiero en git ---
+/target/
+/out/
+/build/
+
+# --- configs de IDE que son locales ---
+/.nb-configuration.xml
+/nbproject/
+/.idea/
+/.vscode/
+/*.iml
+
+# --- cachés / temporales ---
+*.class
+*.log
+*.tmp
+*.DS_Store
+
+# --- sistema operativo / basura ---
+Thumbs.db

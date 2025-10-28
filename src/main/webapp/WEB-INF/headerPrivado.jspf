@@ -1,0 +1,40 @@
+<%
+    String emailLogeado = (String) session.getAttribute("userEmail");
+    String nombreLogeado = (String) session.getAttribute("userName");
+
+    if (emailLogeado == null) {
+        // No hay sesión -> regresar a login
+        response.sendRedirect(request.getContextPath() + "/sesion.jsp?message=Inicia+sesion");
+        return;
+    }
+
+    String inicialUsuario = null;
+    if (nombreLogeado != null && !nombreLogeado.isEmpty()) {
+        inicialUsuario = nombreLogeado.substring(0, 1).toUpperCase();
+    } else if (emailLogeado != null && !emailLogeado.isEmpty()) {
+        inicialUsuario = emailLogeado.substring(0, 1).toUpperCase();
+    } else {
+        inicialUsuario = "U";
+    }
+%>
+
+<!-- Barra superior reutilizable -->
+<div class="topbar" style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:#f5f5f5;border-bottom:1px solid #ddd;">
+    <div class="left" style="display:flex;align-items:center;gap:8px;">
+        <img src="<%= request.getContextPath() %>/img/logo.png.jpg" alt="Logo Ai-Koi" style="height:32px;width:32px;border-radius:4px;object-fit:cover;">
+        <strong>Fundación Ai-Koi</strong>
+    </div>
+
+    <div class="right" style="display:flex;align-items:center;gap:12px;">
+        <span><%= (nombreLogeado != null && !nombreLogeado.isEmpty()) ? nombreLogeado : emailLogeado %></span>
+
+        <!-- avatar parecido a tu .user-avatar -->
+        <div class="user-avatar" style="background:#444;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;">
+            <%= inicialUsuario %>
+        </div>
+
+        <form method="post" action="<%= request.getContextPath() %>/LogoutServlet" style="margin:0;">
+            <button type="submit" class="btn btn-secondary" style="cursor:pointer;">Cerrar sesión</button>
+        </form>
+    </div>
+</div>
