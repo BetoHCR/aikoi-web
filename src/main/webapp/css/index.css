@@ -1,197 +1,413 @@
+/* =========================================
+   Estilos globales - Fundación Ai-Koi
+   ========================================= */
 :root {
-  --orange: #F25C00;
-  --orange-light: #FF7E33;
-  --bg: #fffaf5;
+  --orange: #ff7a18;
+  --orange-light: #ffa45b;
+  --bg: #fff8f2;
   --sidebar-bg: #ffffff;
   --shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  --shadow-strong: 0 6px 20px rgb(0 0 0 / 10%);
   --radius: 12px;
   --muted: #6b7280;
 }
 
+/* ====== Base global ====== */
 body {
   margin: 0;
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  background: linear-gradient(180deg, #ffe5cc, #fffaf5);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  background: linear-gradient(180deg, #fff5ed 0%, #fffaf6 100%);
   color: #333;
 }
 
-/* Layout principal */
+/* ====== Layout general ====== */
 .layout {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
+  background-color: var(--bg);
 }
 
-/* --- SIDEBAR --- */
 .sidebar {
-  width: 230px;
-  background-color: var(--sidebar-bg);
-  box-shadow: var(--shadow);
+  width: 200px;
+  background: linear-gradient(180deg, #fff 0%, #fff8f3 100%);
+  border-right: 2px solid #ffe0c7;
+  padding: 1rem;
+  box-sizing: border-box;
+  color: #333;
   display: flex;
   flex-direction: column;
-  padding: 20px 10px;
+  box-shadow: inset -1px 0 4px rgb(0 0 0 / 3%);
 }
 
-.sidebar .brand {
+.brand {
   text-align: center;
+  margin-bottom: 1rem;
 }
-
-.sidebar .brand .logo {
-  width: 100px;
-  margin: 10px auto;
+.brand .logo {
+  width: 90px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 10%);
   display: block;
-  border-radius: 12px;
+  margin: 10px auto;
+}
+.brand h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ff7a18;
+  margin-top: .5rem;
 }
 
-.sidebar h2 {
-  font-size: 17px;
-  color: var(--orange);
-  margin: 10px 0 20px;
-  font-weight: 700;
-}
-
-/* Menú lateral */
+/* ====== Sidebar menú ====== */
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: .75rem;
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
 }
-
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  color: #333;
+  gap: .5rem;
   text-decoration: none;
-  transition: all 0.2s ease;
-  font-size: 14px;
+  color: #333;
+  padding: .5rem .75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background .2s, color .2s;
 }
-
 .menu-item .icon {
-  margin-right: 8px;
-  font-size: 16px;
+  font-size: 15px;
 }
-
+.menu-item.active,
 .menu-item:hover {
-  background-color: #ffe5d4;
+  background: rgb(255 122 24 / 15%);
+  color: var(--orange);
 }
 
-.menu-item.active {
-  background: linear-gradient(90deg, var(--orange), var(--orange-light));
-  color: #fff;
-  font-weight: 600;
-}
-
-/* --- CONTENIDO PRINCIPAL --- */
+/* ====== Contenido principal ====== */
 .content {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
-  padding: 20px 30px;
+  padding: 1rem 1.5rem 3rem;
+  box-sizing: border-box;
+  background: #fffaf6;
 }
 
-/* Header superior */
+/* ====== Topbar / usuario ====== */
 .topbar {
+  background: #fff;
+  border: 1px solid #f1e9e2;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 4%);
+  border-radius: 8px;
+  padding: .75rem 1rem;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 12px;
-  background-color: #fff;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  margin-bottom: 1.5rem;
+}
+
+.user-block {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
 }
 
 .user-circle {
-  width: 32px;
-  height: 32px;
   background: var(--orange);
   color: #fff;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-weight: bold;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  box-shadow: 0 6px 16px rgb(255 122 24 / 30%);
 }
 
-/* Sección principal */
+.logout-btn {
+  background: #fff;
+  border: 1px solid #d8d3ce;
+  border-radius: 6px;
+  padding: .45rem .7rem;
+  font-size: 13px;
+  color: #444;
+  cursor: pointer;
+  line-height: 1;
+}
+.logout-btn:hover {
+  background: #f8f6f4;
+}
+
+/* ====== Cards y secciones ====== */
 .cards {
-  flex: 1;
-  padding: 20px 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 1.2rem;
 }
 
 .card {
   background: #fff;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px;
+  border: 1px solid #f1e9e2;
+  box-shadow: var(--shadow-strong);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  color: #222;
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .card h3 {
-  margin-top: 0;
-  color: #333;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 .5rem;
 }
 
 .card p {
-  color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
+  color: #5a5a5a;
+  margin: 0;
 }
 
 .actions {
-  margin-top: 10px;
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
+  gap: .5rem;
 }
 
+/* ====== Botones ====== */
 .btn {
-  padding: 8px 16px;
-  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: 600;
-  border: none;
+  padding: .55rem .85rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  background: none;
+  transition: filter .15s, transform .15s;
 }
 
 .btn-primary {
-  background: linear-gradient(90deg, var(--orange), var(--orange-light));
+  background: var(--orange);
   color: #fff;
+  box-shadow: 0 10px 20px rgb(255 122 24 / 25%);
+  border: 1px solid var(--orange);
+}
+.btn-primary:hover {
+  filter: brightness(1.1);
 }
 
 .btn-secondary {
   background: #fff;
-  border: 1px solid var(--orange);
   color: var(--orange);
+  border: 1px solid var(--orange);
+  box-shadow: 0 8px 16px rgb(255 122 24 / 15%);
+}
+.btn-secondary:hover {
+  background: rgb(255 122 24 / 7%);
 }
 
-.btn:hover {
-  transform: translateY(-1px);
+.btn-mini {
+  background: #fff;
+  color: #444;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1;
+  padding: .3rem .5rem;
+  cursor: pointer;
+}
+.btn-mini:hover {
+  background: #f5f5f5;
 }
 
-/* ===== Calendario ===== */
+/* ====== Lista de próximas reuniones ====== */
+#meetingList {
+  list-style: none;
+  padding-left: 1rem;
+  font-size: 13px;
+  color: #222;
+  margin: 0;
+}
+#meetingList li {
+  margin-bottom: .4rem;
+  line-height: 1.4;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem;
+}
+#meetingList strong {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* ====== Toast / alertita flotante ====== */
+.custom-alert {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  background: #1a1a1a;
+  color: #fff;
+  padding: .6rem .75rem;
+  border-radius: 6px;
+  font-size: 13px;
+  box-shadow: 0 20px 30px rgb(0 0 0 / 30%);
+  z-index: 3000;
+}
+.custom-alert.success {
+  background: #2e7d32;
+  box-shadow: 0 20px 30px rgb(46 125 50 / 30%);
+}
+
+/* ====== Modal reunión ====== */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / .4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  width: 420px;
+  max-width: 90%;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 20%);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  padding-bottom: .5rem;
+}
+
+.modal-header {
+  padding: 1rem 1rem .5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+.modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #999;
+}
+.close-btn:hover {
+  color: #444;
+}
+
+.modal-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  font-size: 14px;
+}
+.modal-body label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: .25rem;
+  display: block;
+}
+.modal-body input,
+.modal-body textarea {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: .6rem .7rem;
+  font-size: 14px;
+  background: #fff;
+  color: #222;
+}
+
+.modal-footer {
+  border-top: 1px solid #eee;
+  padding: .75rem 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+.modal-footer .btn {
+  min-width: 100px;
+}
+
+/* Tabs dentro del modal */
+.tabs {
+  display: flex;
+  gap: .5rem;
+  border-bottom: 1px solid #eee;
+  margin-bottom: .5rem;
+}
+.tab {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: .4rem .6rem;
+  font-size: 12px;
+  border-radius: 6px 6px 0 0;
+  color: #666;
+  font-weight: 500;
+}
+.tab.active {
+  background: #fffaf6;
+  border: 1px solid #eee;
+  border-bottom-color: transparent;
+  color: var(--orange);
+  box-shadow: 0 -2px 6px rgb(0 0 0 / 4%);
+}
+
+.tab-content {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* ====== Calendario (pantalla calendario.jsp) ====== */
 .calendar-placeholder {
   margin-top: 20px;
   background: #fff;
-  border-radius: var(--radius);
+  border-radius: 12px;
   box-shadow: var(--shadow);
   padding: 15px;
 }
-
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
 }
-
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
 }
-
 .calendar-day {
   text-align: center;
   padding: 10px;
@@ -199,38 +415,67 @@ body {
   background-color: #fff7f2;
   color: #333;
   font-size: 14px;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 4%);
 }
-
 .calendar-day.header {
   background-color: var(--orange);
   color: #fff;
   font-weight: bold;
+  box-shadow: 0 8px 16px rgb(255 122 24 / 30%);
 }
 
-/* ===== Configuración ===== */
+/* ====== Configuración (configuracion.jsp) ====== */
 .settings-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-top: 15px;
+  font-size: 14px;
 }
-
 .settings-form label {
   font-weight: 600;
   font-size: 14px;
   color: #444;
 }
-
 .settings-form input,
 .settings-form select {
   padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid #ccc;
   font-size: 14px;
+  background: #fff;
+  color: #333;
 }
-
 .settings-form input:focus,
 .settings-form select:focus {
   outline: none;
   border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgb(255 122 24 / 20%);
 }
+
+/* descripción en lista de reuniones */
+/* etiqueta con el código tipo ABC-123 */
+.meeting-code {
+    display: inline-block;
+    background: #fff3ea;           /* naranja muy claro */
+    color: #d14a00;                /* naranja más fuerte */
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    border: 1px solid #ffd9c2;
+    border-radius: 4px;
+    padding: 2px 5px;
+    box-shadow: 0 3px 6px rgb(255 122 24 / 15%);
+    vertical-align: middle;
+}
+
+/* descripción bajo el título en la lista */
+.meeting-desc {
+    flex-basis: 100%;
+    font-size: 12px;
+    color: #6b6b6b;
+    margin-left: 0;      /* como ahora la estamos poniendo debajo, no al lado */
+    margin-top: 2px;
+    line-height: 1.3;
+}
+
