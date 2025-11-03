@@ -145,39 +145,72 @@
         .user-avatar:hover {
             transform: scale(1.1);
         }
-        
         .meeting-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 0 20px 20px;
-            overflow: hidden;
-        }
-        
-        .video-grid {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
-            overflow-y: auto;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            margin: 0 20px;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .video-item {
-            background-color: var(--dark-color);
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-            aspect-ratio: 16/9;
-            box-shadow: var(--shadow);
-        }
-        
+  /* Mantiene el área principal sin forzar a que el grid crezca infinito */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 20px 20px;
+}
+
+/* Grid de videos: filas y columnas con ANCHOS FIJOS para que no se estiren */
+.video-grid {
+  display: grid;
+  /* columnas de 260–320 px, repitiéndose; NO usa fracciones (1fr),
+     así evitamos que la tarjeta se expanda a todo el contenedor */
+  grid-template-columns: repeat(auto-fill, minmax(260px, 320px));
+  grid-auto-rows: 180px;              /* alto base para cada tarjeta 16:9 aprox */
+  justify-content: start;             /* alinea tarjetas a la izquierda */
+  align-content: start;               /* apila filas arriba */
+  gap: 14px;
+
+  /* Caja visual */
+  height: 1020px;                      /* alto fijo; ajusta a tu gusto */
+  overflow: auto;                     /* scroll cuando hay muchas tarjetas */
+  padding: 12px;
+  margin: 0 20px;
+
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Tarjeta de video (no se estira, respeta tamaño) */
+.video-item {
+  width: 100%;                        /* ocupa la columna asignada */
+  height: 100%;                       /* ocupa la fila asignada */
+  max-width: 320px;                   /* tope visual */
+  max-height: 180px;
+
+  background-color: var(--dark-color);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow);
+  justify-self: start;                /* evita centrarse/estirarse */
+  align-self: start;
+}
+
+.video-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;                  /* recorte agradable si la cámara no es 16:9 */
+}
+
+/* Cuando SOLO hay 1 participante, mantenla como tarjeta (no full) */
+.video-grid.single .video-item {
+  max-width: 360px;                   /* un poquito más grande si quieres */
+  max-height: 202px;                  /* ~16:9 */
+}
+
+/* Si quieres un modo “compacto” con más columnas (opcional) */
+.video-grid.compact {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 280px));
+  grid-auto-rows: 155px;
+}
+ 
         .video-item video {
             width: 100%;
             height: 100%;
@@ -874,3 +907,80 @@
                 max-width: 300px;
             }
         }
+        /* === Barra de controles con texto corto bajo el icono === */
+.meeting-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  padding: 15px 20px;
+}
+
+.control-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--white);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;   /* icono arriba, texto abajo */
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: transform .2s, background-color .2s, color .2s;
+  position: relative;
+}
+
+.control-btn:hover {
+  transform: scale(1.06);
+}
+
+.control-btn i {
+  font-size: 20px;
+  color: var(--text-color);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.control-btn small {
+  font-size: 10px;
+  color: #555;
+  font-weight: 600;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* Estado visual cuando algo está “apagado” (muteado/oculto) */
+.control-btn.muted {
+  background-color: #fdeaea;
+}
+.control-btn.muted i,
+.control-btn.muted small {
+  color: #a11b1b;
+}
+
+/* Estado activo genérico (si quisieras realzarlo) */
+.control-btn.active {
+  background: linear-gradient(135deg, var(--primary-color), #FF7E33);
+}
+.control-btn.active i,
+.control-btn.active small {
+  color: #fff;
+}
+
+/* Botón de colgar */
+.control-btn.end-call {
+  background: linear-gradient(135deg, var(--danger-color), #FF6B6B);
+  color: white;
+}
+.control-btn.end-call i, .control-btn.end-call small {
+  color: white;
+}
+
+/* Responsive: botones ligeramente más pequeños */
+@media (max-width: 768px) {
+  .control-btn { width: 50px; height: 50px; }
+  .control-btn i { font-size: 18px; }
+  .control-btn small { font-size: 9px; }
+}
