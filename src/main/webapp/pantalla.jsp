@@ -30,7 +30,8 @@
   <meta charset="UTF-8">
   <title>Videoconferencia - Fundación Ai-Koi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Tu hoja de estilos -->
+
+  <!-- Estilos -->
   <link rel="stylesheet" href="<%= request.getContextPath() %>/css/pantalla.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -45,6 +46,13 @@
   <div class="meeting-container">
     <!-- ===== HEADER ===== -->
     <div class="meeting-header">
+      <!-- Badge de grabación (oculto por defecto) -->
+      <div id="recBadge" class="control-btn recording hide" title="Grabando"
+           style="width:auto;border-radius:16px;padding:6px 10px">
+        <i class="fas fa-circle"></i>
+        <small style="margin-left:6px">Grabando</small>
+      </div>
+
       <div class="logo-container">
         <img src="<%= request.getContextPath() %>/img/logo.png.jpg" alt="Logo Fundación Ai-Koi" class="logo">
         <div class="meeting-title" id="meetingTitle">Reunión de Proyecto</div>
@@ -68,6 +76,12 @@
       <div class="user-avatar" id="userAvatar" title="<%= userNameFromServlet %>"><%= inicialUsuario %></div>
     </div>
 
+    <!-- Selector de cámara (quítale "hide" si lo quieres visible) -->
+    <div class="device-toolbar hide">
+      <label for="camSelect" style="font-size:12px;color:#666">Cámara:</label>
+      <select id="camSelect"></select>
+    </div>
+
     <!-- ===== MAIN (GRID DE VIDEO) ===== -->
     <div class="meeting-main">
       <div class="video-grid" id="videoGrid">
@@ -84,7 +98,7 @@
       </div>
     </div>
 
-    <!-- ===== CONTROLES (ÚNICO BLOQUE) ===== -->
+    <!-- ===== CONTROLES ===== -->
     <div class="meeting-controls" id="controlsBar">
       <button class="control-btn" id="toggleMicBtn" title="Micrófono activado" aria-pressed="true">
         <i class="fas fa-microphone"></i>
@@ -125,12 +139,6 @@
         <i class="fas fa-phone-slash"></i>
         <small>Salir</small>
       </button>
-    </div>
-
-    <!-- Selector de cámara (quítale "hide" si lo quieres visible) -->
-    <div class="device-toolbar hide">
-      <label for="camSelect" style="font-size:12px;color:#666">Cámara:</label>
-      <select id="camSelect"></select>
     </div>
 
     <!-- ===== LIVE MENU ===== -->
@@ -177,15 +185,27 @@
   <!-- ===== Lógica JS ===== -->
   <script>
   document.addEventListener('DOMContentLoaded', function(){
-    // Utilidades
+    // ===== Utilidades =====
     function escapeHtml(str){ if(str==null) return ''; return String(str)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
     function alertFeedback(message, type){
       var old=document.querySelector('.custom-alert'); if(old) old.remove();
       var box=document.createElement('div'); box.className='custom-alert '+(type||'success');
       box.textContent=message; document.body.appendChild(box); setTimeout(()=>box.remove(),3000);
     }
+
+    function setBtnState(btn, {on, titleOn, titleOff, iconOn, iconOff}){
+      if (!btn) return;
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.title = on ? titleOn : titleOff;
+      const i = btn.querySelector('i');
+      if (i){ i.className = 'fas ' + (on ? iconOn : iconOff); }
+      const small = btn.querySelector('small');
+      if (small){ small.textContent = on ? titleOn.split(' ')[0] : titleOff.split(' ')[0]; }
+    }
+
     function startMeetingTimer(){
       meetingStartTime=new Date();
       timerInterval=setInterval(function(){
@@ -197,9 +217,10 @@
         var span=meetingTimer.querySelector('span'); if(span) span.textContent=t;
       },1000);
     }
+
     function setupWebRTC(){ dataChannel={ send:function(msg){ console.log('Mock send:',msg); } }; }
 
-    // Estado
+    // ===== Estado =====
     var urlParams = new URLSearchParams(window.location.search);
     var meetingId   = urlParams.get('meetingId')   || 'SIN-ID';
     var meetingName = urlParams.get('meetingName') || 'Reunión';
@@ -216,7 +237,11 @@
     var participants = [];
     var currentCamId = null;
 
-    // Refs DOM
+    var mediaRecorder = null;
+    var recordedChunks = [];
+    var recBadge = document.getElementById('recBadge');
+
+    // ===== Refs DOM =====
     var meetingTitle     = document.getElementById('meetingTitle');
     var meetingIdDisplay = document.getElementById('meetingIdDisplay');
     var meetingTimer     = document.getElementById('meetingTimer');
@@ -247,14 +272,14 @@
 
     var camSelect        = document.getElementById('camSelect');
 
-    // UI inicial
+    // ===== UI inicial =====
     meetingTitle.textContent     = meetingName;
     meetingIdDisplay.textContent = "ID: " + meetingId;
     localUserNameEl.textContent  = userName;
     userAvatar.textContent       = userName.charAt(0).toUpperCase();
     userAvatar.title             = userName;
 
-    // Participantes
+    // ===== Participantes =====
     function updateParticipantsList(){
       participantsList.innerHTML='';
       participants.forEach(function(p){
@@ -271,7 +296,7 @@
       });
     }
 
-    // Chat
+    // ===== Chat =====
     function addChatMessage(sender, message, isLocal){
       var wrap=document.createElement('div');
       wrap.className='chat-message '+(isLocal?'sent':'received');
@@ -287,7 +312,7 @@
       if(dataChannel && typeof dataChannel.send==='function'){ dataChannel.send(text); }
     }
 
-    // Dispositivos / Medios
+    // ===== Dispositivos / Medios =====
     async function listCameras(){
       const devices = await navigator.mediaDevices.enumerateDevices();
       return devices.filter(d=>d.kind==='videoinput');
@@ -317,6 +342,7 @@
         return s;
       }catch(e){
         console.warn('ensureStream error:', e);
+        // Si falla la CAM, caemos a solo audio
         if(video && (e.name==='NotReadableError' || e.name==='NotFoundError' || e.name==='OverconstrainedError')){
           const s = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
           alertFeedback('No se pudo iniciar la cámara. Continúas con solo audio.','warning');
@@ -340,8 +366,15 @@
 
         localMicIcon.className   = isMicOn  ? 'fas fa-microphone' : 'fas fa-microphone-slash';
         localVideoIcon.className = isVideoOn ? 'fas fa-video'      : 'fas fa-video-slash';
-        toggleMicBtn.setAttribute('title', isMicOn ? 'Micrófono activado' : 'Micrófono desactivado');
-        toggleVideoBtn.setAttribute('title', isVideoOn ? 'Cámara activada' : 'Cámara desactivada');
+
+        setBtnState(toggleMicBtn,{
+          on:isMicOn, titleOn:'Micrófono activado', titleOff:'Micrófono desactivado',
+          iconOn:'fa-microphone', iconOff:'fa-microphone-slash'
+        });
+        setBtnState(toggleVideoBtn,{
+          on:isVideoOn, titleOn:'Cámara activada', titleOff:'Cámara desactivada',
+          iconOn:'fa-video', iconOff:'fa-video-slash'
+        });
 
         const me = participants.find(p=>p.id==='local');
         if(me){
@@ -372,8 +405,16 @@
       if(!localStream){ alertFeedback('No hay stream local','error'); return; }
       const at = localStream.getAudioTracks(); if(!at.length){ alertFeedback('No se detectó micrófono','error'); return; }
       isMicOn=!isMicOn; at.forEach(t=>t.enabled=isMicOn);
+
       localMicIcon.className = isMicOn ? 'fas fa-microphone' : 'fas fa-microphone-slash';
-      toggleMicBtn.setAttribute('title', isMicOn ? 'Micrófono activado' : 'Micrófono desactivado');
+      setBtnState(toggleMicBtn,{
+        on:isMicOn,
+        titleOn:'Micrófono activado',
+        titleOff:'Micrófono desactivado',
+        iconOn:'fa-microphone',
+        iconOff:'fa-microphone-slash'
+      });
+
       const me=participants.find(p=>p.id==='local'); if(me) me.isMicOn=isMicOn; updateParticipantsList();
       alertFeedback('Micrófono '+(isMicOn?'activado':'desactivado'), isMicOn?'success':'warning');
     }
@@ -390,24 +431,26 @@
           localStream.getTracks().forEach(t=>t.stop());
           localStream = newStream;
           localVideo.srcObject = localStream;
-
           isVideoOn=true;
-          localVideoIcon.className='fas fa-video';
-          toggleVideoBtn.setAttribute('title','Cámara activada');
-          const me=participants.find(p=>p.id==='local'); if(me) me.isVideoOn=true; updateParticipantsList();
-          alertFeedback('Cámara activada','success');
-          return;
         }catch(e){
           console.warn('No se pudo encender cámara:', e);
           alertFeedback('No se pudo encender la cámara.','error');
           return;
         }
+      }else{
+        isVideoOn=!isVideoOn;
+        vt.forEach(t=>t.enabled=isVideoOn);
       }
 
-      isVideoOn=!isVideoOn;
-      vt.forEach(t=>t.enabled=isVideoOn);
       localVideoIcon.className = isVideoOn ? 'fas fa-video' : 'fas fa-video-slash';
-      toggleVideoBtn.setAttribute('title', isVideoOn ? 'Cámara activada' : 'Cámara desactivada');
+      setBtnState(toggleVideoBtn,{
+        on:isVideoOn,
+        titleOn:'Cámara activada',
+        titleOff:'Cámara desactivada',
+        iconOn:'fa-video',
+        iconOff:'fa-video-slash'
+      });
+
       const me=participants.find(p=>p.id==='local'); if(me) me.isVideoOn=isVideoOn; updateParticipantsList();
       alertFeedback('Cámara '+(isVideoOn?'activada':'desactivada'), isVideoOn?'success':'warning');
     }
@@ -432,9 +475,76 @@
       alertFeedback('Dejó de compartir pantalla','warning');
     }
 
-    function startRecording(){ isRecording=true; recordBtn.classList.add('recording'); alertFeedback('Grabación iniciada (simulada)','success'); }
-    function stopRecording(){ if(!isRecording) return; isRecording=false; recordBtn.classList.remove('recording'); alertFeedback('Grabación detenida','success'); }
+    // ===== Grabación real (MediaRecorder) =====
+    function getCurrentRecordableStream(){
+      if (screenStream) return screenStream;
+      return localStream;
+    }
+    function bestSupportedMime(){
+      const candidates = [
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm'
+      ];
+      for (const type of candidates){
+        if (window.MediaRecorder && MediaRecorder.isTypeSupported(type)) return type;
+      }
+      return '';
+    }
+    async function startRecording(){
+      const streamToRecord = getCurrentRecordableStream();
+      if (!streamToRecord){
+        alertFeedback('No hay stream disponible para grabar','error');
+        return;
+      }
+      try{
+        recordedChunks = [];
+        const mimeType = bestSupportedMime();
+        mediaRecorder = mimeType ? new MediaRecorder(streamToRecord, { mimeType })
+                                 : new MediaRecorder(streamToRecord);
 
+        mediaRecorder.ondataavailable = (e)=>{
+          if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+        };
+        mediaRecorder.onstop = ()=>{
+          const blob = new Blob(
+            recordedChunks,
+            { type: (mediaRecorder && mediaRecorder.mimeType) || 'video/webm' }
+          );
+          const url  = URL.createObjectURL(blob);
+          const filename = 'grabacion-' + meetingId + '-' + SERVER_TODAY + '.webm';
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 100);
+          alertFeedback('Grabación guardada','success');
+        };
+
+        mediaRecorder.start(250);
+        isRecording = true;
+        recordBtn.classList.add('recording');
+        recordBtn.title = 'Detener grabación';
+        if (recBadge) recBadge.classList.remove('hide');
+        alertFeedback('Grabación iniciada','success');
+
+      }catch(err){
+        console.error('MediaRecorder error:', err);
+        alertFeedback('No se pudo iniciar la grabación','error');
+      }
+    }
+    function stopRecording(){
+      if (!isRecording || !mediaRecorder) return;
+      try{ mediaRecorder.stop(); }catch(_){}
+      isRecording = false;
+      recordBtn.classList.remove('recording');
+      recordBtn.title = 'Iniciar grabación';
+      if (recBadge) recBadge.classList.add('hide');
+    }
+
+    // ===== Sidebar / Invitaciones =====
     function toggleSidebarTo(tabName){
       if(!meetingSidebar.classList.contains('active')) meetingSidebar.classList.add('active');
       var tabs=meetingSidebar.querySelectorAll('.sidebar-tab');
@@ -470,12 +580,13 @@
       document.getElementById('whatsappOption').onclick = ()=> window.open("https://wa.me/?text="+encodeURIComponent("Únete a mi reunión: "+inviteLink), "_blank");
     }
 
-    // Listeners
+    // ===== Listeners =====
     toggleMicBtn.addEventListener('click', toggleMicrophone);
     toggleVideoBtn.addEventListener('click', toggleCamera);
     shareScreenBtn.addEventListener('click', ()=> screenStream ? stopScreenShare() : shareScreen());
     recordBtn.addEventListener('click', ()=> isRecording ? stopRecording() : startRecording());
     liveMenuBtn.addEventListener('click', ()=> liveMenu.style.display = (liveMenu.style.display==='block')?'none':'block');
+
     participantsBtn.addEventListener('click', function(){
       var open = meetingSidebar.classList.contains('active');
       if(open && document.querySelector('.sidebar-tab.active[data-tab="participants"]')) { toggleSidebarOnly(); return; }
@@ -491,7 +602,7 @@
     chatInput.addEventListener('keypress', function(e){ if(e.key==='Enter') sendChatMessage(); });
     endCallBtn.addEventListener('click', function(){ if(confirm('¿Salir de la reunión?')) window.location.href = SERVER_CTX + '/index.jsp'; });
 
-    // Arranque
+    // ===== Arranque =====
     (async function init(){
       await populateCameraSelect(); // quita "hide" a .device-toolbar si quieres mostrarlo
       startMedia();
